@@ -1,14 +1,41 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'dart:convert';
+
+class MovisensDataPoint {
+  static const String TAP_MARKER = 'tapMarker', BATTERY_LEVEL = 'batteryLevel';
+
+  String _batteryLevel;
+  String _tapMarker;
+
+  MovisensDataPoint(Map<String, dynamic> data) {
+    _batteryLevel = data.containsKey(TAP_MARKER) ? data[TAP_MARKER] : null;
+    _tapMarker = data.containsKey(BATTERY_LEVEL) ? data[BATTERY_LEVEL] : null;
+  }
+
+  String get batteryLevel => _batteryLevel;
+  String get tapMarker => _tapMarker;
+
+  @override
+  String toString() {
+    return 'Movisens Data Point {Battery Level: $batteryLevel, Tap Marker: $tapMarker}';
+  }
+}
+
+MovisensDataPoint parseDataPoint(dynamic dataPoint) {
+//  Map<dynamic, dynamic> jsonMap = json.decode(dataPoint);
+  Map<String, dynamic> data = new Map<String, dynamic>.from(dataPoint);
+  return MovisensDataPoint(data);
+}
 
 class MovisensFlutter {
 //  MethodChannel _channel = MethodChannel('movisens_flutter');
   EventChannel _eventChannel = EventChannel('movisens.event_channel');
-  Stream<String> _movisenStream;
+  Stream<MovisensDataPoint> _movisenStream;
 
-  Stream<String> get movisensStream {
-    _movisenStream = _eventChannel.receiveBroadcastStream().map((x) => x);
+  Stream<MovisensDataPoint> get movisensStream {
+    _movisenStream = _eventChannel.receiveBroadcastStream().map(parseDataPoint);
     return _movisenStream;
   }
 

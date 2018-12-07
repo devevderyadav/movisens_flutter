@@ -43,6 +43,7 @@ import com.movisens.smartgattlib.helper.GattByteBuffer;
 
 import org.joda.time.DateTime;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -80,7 +81,9 @@ public class MovisensService extends Service {
     public final static String ALLOWDELETEDATE = "allowdeletedata";
     public final static String AUTOSTARTNEWMEASUREMENT = "autostartnewmeasurement";
 
-    public final static String TAP_INTENT_NAME = "tap_marker";
+    public final static String MOVISENS_INTENT_NAME = "movisens_events";
+    public final static String MOVISENS_BATTERY_LEVEL = "battery_level";
+    public final static String MOVISENS_TAP_MARKER = "tap_marker";
     private final static int NOTIFICATION_ID = 1377;
     private final static int IDLE_CHECK_INTERVAL = 30000;
     private final static int IDLE_RECONNECT_INTERVAL = 180000;
@@ -94,10 +97,10 @@ public class MovisensService extends Service {
     private String deviceAdress;
     private ScheduledThreadPoolExecutor mScheduler;
 
-    public void broadcastData(String tag, String data) {
-        Log.d("MovisensService", "broadcastData()");
-        Intent dataIntent = new Intent(TAP_INTENT_NAME);
-        dataIntent.putExtra(tag, data);
+    public void broadcastData(String key, String value) {
+//        Log.d("MovisensService", "broadcastData()");
+        Intent dataIntent = new Intent(MOVISENS_INTENT_NAME);
+        dataIntent.putExtra(key, value);
         sendBroadcast(dataIntent);
     }
 
@@ -579,14 +582,17 @@ public class MovisensService extends Service {
                     /// TAPS!!!
                     if (MovisensCharacteristics.TAP_MARKER.equals(uuid)) {
                         TapMarker marker = new TapMarker(data);
-                        String markerData = marker.getTapMarker() + "";
-                        Log.d("marker_data ", "" + markerData);
-                        sm.context.broadcastData("tap_marker", markerData);
+//                        String markerData = "TAP MARKER: " + marker.getTapMarker();
+                        String markerData = "TAP MARKER: " + Calendar.getInstance().getTimeInMillis();
+                        sm.context.broadcastData(sm.context.MOVISENS_TAP_MARKER, markerData);
                     }
 
                     if (MovisensCharacteristics.BATTERY_LEVEL_BUFFERED.equals(uuid)) {
                         BatteryLevelBuffered battery = new BatteryLevelBuffered(data);
                         sm.context.splitAndSaveLastBatteryLevel(battery);
+                        String level = "BATTERY: " + battery.getLevel()[0];
+                        Log.d(TAG, "BATTERY: " + level);
+                        sm.context.broadcastData(sm.context.MOVISENS_BATTERY_LEVEL, level);
                     }
 
                     if (Characteristics.FIRMWARE_REVISION_STRING.equals(uuid)) {

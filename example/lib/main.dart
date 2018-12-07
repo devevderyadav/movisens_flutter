@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 
+
 import 'package:flutter/services.dart';
 import 'package:movisens_flutter/movisens_flutter.dart';
 
@@ -25,8 +26,8 @@ class _MyAppState extends State<MyApp> {
    movisens.movisensStream.listen(onData);
   }
 
-  void onData(dynamic data) {
-    print('Data: $data');
+  void onData(MovisensDataPoint data) {
+    print('FLUTTER: $data');
   }
 
   @override

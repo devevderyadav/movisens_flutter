@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.util.Log;
 
+import java.util.HashMap;
+
 import de.kn.uni.smartact.movisenslibrary.bluetooth.MovisensService;
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
@@ -26,9 +28,9 @@ public class MovisensFlutterPlugin implements EventChannel.StreamHandler {
 
   public MovisensFlutterPlugin(Context context) {
     /// Set up the intent filter
-    TapReceiver receiver = new TapReceiver();
+    MovisensEventReceiver receiver = new MovisensEventReceiver();
     IntentFilter intentFilter = new IntentFilter();
-    intentFilter.addAction(MovisensService.TAP_INTENT_NAME);
+    intentFilter.addAction(MovisensService.MOVISENS_INTENT_NAME);
     context.registerReceiver(receiver, intentFilter);
 
     /// Start MoviSens service
@@ -39,21 +41,26 @@ public class MovisensFlutterPlugin implements EventChannel.StreamHandler {
   @Override
   public void onListen(Object o, EventChannel.EventSink eventSink) {
     this.eventSink = eventSink;
-    eventSink.success("Hello world!");
   }
 
   @Override
   public void onCancel(Object o) {
+    this.eventSink = null;
 
   }
 
-  class TapReceiver extends BroadcastReceiver {
-    final static String TAG = "TapReceiver";
+  class MovisensEventReceiver extends BroadcastReceiver {
+    final static String TAG = "MovisensEventReceiver";
     @Override
     public void onReceive(Context context, Intent intent) {
-      Log.d(TAG, "TapReceiver: onReceive()");
-      String markerData = intent.getStringExtra(MovisensService.TAP_INTENT_NAME);
-      eventSink.success(markerData);
+      Log.d(TAG, "MovisensEventReceiver: onReceive()");
+      String batteryLevel = intent.getStringExtra(MovisensService.MOVISENS_BATTERY_LEVEL);
+      String tapMarker = intent.getStringExtra(MovisensService.MOVISENS_TAP_MARKER);
+      HashMap<String, String> data = new HashMap<>();
+
+      if (batteryLevel != null) data.put("batteryLevel", batteryLevel);
+      if (tapMarker != null) data.put("tapMarker", tapMarker);
+      eventSink.success(data);
     }
   }
 }
