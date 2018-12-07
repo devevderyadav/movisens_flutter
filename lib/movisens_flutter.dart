@@ -4,22 +4,26 @@ import 'package:flutter/services.dart';
 import 'dart:convert';
 
 class MovisensDataPoint {
-  static const String TAP_MARKER = 'tapMarker', BATTERY_LEVEL = 'batteryLevel';
+  static const String
+      TAP_MARKER = 'tapMarker',
+      BATTERY_LEVEL = 'batteryLevel',
+      STEP_COUNT = 'step_count';
 
-  String _batteryLevel;
-  String _tapMarker;
+  String _batteryLevel, _tapMarker, _stepCount;
 
   MovisensDataPoint(Map<String, dynamic> data) {
-    _batteryLevel = data.containsKey(TAP_MARKER) ? data[TAP_MARKER] : null;
-    _tapMarker = data.containsKey(BATTERY_LEVEL) ? data[BATTERY_LEVEL] : null;
+    _batteryLevel = data.containsKey(BATTERY_LEVEL) ? data[BATTERY_LEVEL] : null;
+    _tapMarker = data.containsKey(TAP_MARKER) ? data[TAP_MARKER] : null;
+    _stepCount = data.containsKey(STEP_COUNT) ? data[STEP_COUNT] : null;
   }
 
   String get batteryLevel => _batteryLevel;
   String get tapMarker => _tapMarker;
+  String get stepCount => _stepCount;
 
   @override
   String toString() {
-    return 'Movisens Data Point {Battery Level: $batteryLevel, Tap Marker: $tapMarker}';
+    return 'Movisens Data Point {Battery Level: $batteryLevel, Tap Marker: $tapMarker, Step Count: $stepCount}';
   }
 }
 

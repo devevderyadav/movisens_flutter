@@ -84,6 +84,10 @@ public class MovisensService extends Service {
     public final static String MOVISENS_INTENT_NAME = "movisens_events";
     public final static String MOVISENS_BATTERY_LEVEL = "battery_level";
     public final static String MOVISENS_TAP_MARKER = "tap_marker";
+    public final static String MOVISENS_STEP_COUNT = "step_count";
+    public final static String MOVISENS_MET_LEVEL = "met_level";
+
+
     private final static int NOTIFICATION_ID = 1377;
     private final static int IDLE_CHECK_INTERVAL = 30000;
     private final static int IDLE_RECONNECT_INTERVAL = 180000;
@@ -583,14 +587,14 @@ public class MovisensService extends Service {
                     if (MovisensCharacteristics.TAP_MARKER.equals(uuid)) {
                         TapMarker marker = new TapMarker(data);
 //                        String markerData = "TAP MARKER: " + marker.getTapMarker();
-                        String markerData = "TAP MARKER: " + Calendar.getInstance().getTimeInMillis();
+                        String markerData = "" + Calendar.getInstance().getTimeInMillis();
                         sm.context.broadcastData(sm.context.MOVISENS_TAP_MARKER, markerData);
                     }
 
                     if (MovisensCharacteristics.BATTERY_LEVEL_BUFFERED.equals(uuid)) {
                         BatteryLevelBuffered battery = new BatteryLevelBuffered(data);
                         sm.context.splitAndSaveLastBatteryLevel(battery);
-                        String level = "BATTERY: " + battery.getLevel()[0];
+                        String level = "" + battery.getLevel()[0];
                         Log.d(TAG, "BATTERY: " + level);
                         sm.context.broadcastData(sm.context.MOVISENS_BATTERY_LEVEL, level);
                     }
@@ -609,10 +613,11 @@ public class MovisensService extends Service {
                     }
 
                     if (MovisensCharacteristics.STEPS_BUFFERED.equals(uuid)) {
-                        StepsBuffered new_data = new StepsBuffered(data);
-
-                        Log.d("step", new_data.getSteps().toString());
-                        sm.context.splitAndSaveSteps(new_data);
+                        StepsBuffered stepsBuffered = new StepsBuffered(data);
+                        String stepString = stepsBuffered.getSteps().toString();
+                        Log.d("step", stepString);
+                        sm.context.splitAndSaveSteps(stepsBuffered);
+                        sm.context.broadcastData(sm.context.MOVISENS_STEP_COUNT, stepString);
                     }
 
                     if (MovisensCharacteristics.MET_LEVEL_BUFFERED.equals(uuid)) {
