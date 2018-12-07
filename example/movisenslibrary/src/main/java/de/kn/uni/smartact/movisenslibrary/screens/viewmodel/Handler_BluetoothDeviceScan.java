@@ -12,7 +12,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Handler;
-import android.util.Log;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -122,7 +121,7 @@ public class Handler_BluetoothDeviceScan {
 
         @Override
         public void onScanResult(int callbackType, final ScanResult result) {
-            Log.d("BLE", "onScanResult: " + result.getDevice().getName());
+//            Log.d("BLE", "onScanResult: " + result.getDevice().getName());
 
 
             mContext.runOnUiThread(new Runnable() {

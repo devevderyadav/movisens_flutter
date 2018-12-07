@@ -3,11 +3,14 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 
 class MovisensFlutter {
-  static const MethodChannel _channel =
-      const MethodChannel('movisens_flutter');
+//  MethodChannel _channel = MethodChannel('movisens_flutter');
+  EventChannel _eventChannel = EventChannel('movisens.event_channel');
+  Stream<String> _movisenStream;
 
-  static Future<String> get platformVersion async {
-    final String version = await _channel.invokeMethod('getPlatformVersion');
-    return version;
+  Stream<String> get movisensStream {
+    _movisenStream = _eventChannel.receiveBroadcastStream().map((x) => x);
+    return _movisenStream;
   }
+
+
 }

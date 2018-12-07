@@ -122,7 +122,7 @@ public class Handler_BluetoothDeviceScan {
 
         @Override
         public void onScanResult(int callbackType, final ScanResult result) {
-            Log.d("BLE", "onScanResult: " + result.getDevice().getName());
+//            Log.d("BLE", "onScanResult: " + result.getDevice().getName());
 
 
             mContext.runOnUiThread(new Runnable() {

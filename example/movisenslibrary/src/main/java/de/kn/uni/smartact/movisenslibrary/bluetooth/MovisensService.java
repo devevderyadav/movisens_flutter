@@ -1,5 +1,4 @@
 package de.kn.uni.smartact.movisenslibrary.bluetooth;
-
 import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -81,9 +80,11 @@ public class MovisensService extends Service {
     public final static String ALLOWDELETEDATE = "allowdeletedata";
     public final static String AUTOSTARTNEWMEASUREMENT = "autostartnewmeasurement";
 
+    public final static String TAP_INTENT_NAME = "tap_marker";
     private final static int NOTIFICATION_ID = 1377;
     private final static int IDLE_CHECK_INTERVAL = 30000;
     private final static int IDLE_RECONNECT_INTERVAL = 180000;
+
 
     private boolean allow_delete_data = false;
     private long timeLastReceived;
@@ -92,6 +93,13 @@ public class MovisensService extends Service {
     private BLEConnectionHandler connectionHandler;
     private String deviceAdress;
     private ScheduledThreadPoolExecutor mScheduler;
+
+    public void broadcastData(String tag, String data) {
+        Log.d("MovisensService", "broadcastData()");
+        Intent dataIntent = new Intent(TAP_INTENT_NAME);
+        dataIntent.putExtra(tag, data);
+        sendBroadcast(dataIntent);
+    }
 
     public static boolean isServiceRunning(Context context) {
         ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
@@ -126,8 +134,7 @@ public class MovisensService extends Service {
         log(TAG, "Create Service");
     }
 
-    public Notification getNotification(int title, int text, int icon)
-    {
+    public Notification getNotification(int title, int text, int icon) {
         NotificationCompat.Builder foregroundNotification = new NotificationCompat.Builder(this);
         foregroundNotification.setOngoing(true);
 
@@ -153,7 +160,7 @@ public class MovisensService extends Service {
     private void setConnectionState(Boolean connected) {
         if (connected) {
             updateNotification(R.string.notification_title, R.string.sensor_connected, R.drawable.ic_stat_connected);
-        }else {
+        } else {
             updateNotification(R.string.notification_title, R.string.sensor_disconnected, R.drawable.ic_stat_disconnected);
         }
 
@@ -173,7 +180,6 @@ public class MovisensService extends Service {
         log(TAG, "Service stared");
         return Service.START_NOT_STICKY;
     }
-
 
 
     @Override
@@ -223,7 +229,7 @@ public class MovisensService extends Service {
         setConnectionState(false);
         mScheduler.shutdownNow();
 
-        if (connectionHandler != null){
+        if (connectionHandler != null) {
             Log.d(TAG, "Stopping Gatt service");
 
             connectionHandler.close();
@@ -270,7 +276,7 @@ public class MovisensService extends Service {
         return intentFilter;
     }
 
-        // Handles various events fired by the Service.
+    // Handles various events fired by the Service.
     // ACTION_GATT_CONNECTED: connected to a GATT server.
     // ACTION_GATT_DISCONNECTED: disconnected from a GATT server.
     // ACTION_GATT_SERVICES_DISCOVERED: discovered GATT services.
@@ -363,7 +369,7 @@ public class MovisensService extends Service {
             BleUtils.readCharacteristic(
                     MovisensCharacteristics.MEASUREMENT_ENABLED.getUuid(), "MEASUREMENT_ENABLED",
                     gattService.getCharacteristics(), connectionHandler);
-            BleUtils.readCharacteristic(MovisensCharacteristics.DATA_AVAILABLE.getUuid(),"DATA_AVAILABLE",
+            BleUtils.readCharacteristic(MovisensCharacteristics.DATA_AVAILABLE.getUuid(), "DATA_AVAILABLE",
                     gattService.getCharacteristics(), connectionHandler);
         } else {
             log(TAG, "GattService not found");
@@ -377,12 +383,12 @@ public class MovisensService extends Service {
         UserData userData = new UserData(this);
 
         double weight = Double.parseDouble(userData.weight.get());
-        double height = Double.parseDouble(userData.height.get())/100;
+        double height = Double.parseDouble(userData.height.get()) / 100;
 
         EnumGender sex = EnumGender.MALE;
-        if(userData.gender.get().equals("male")) {
+        if (userData.gender.get().equals("male")) {
             sex = EnumGender.MALE;
-        } else if(userData.gender.get().equals("female")) {
+        } else if (userData.gender.get().equals("female")) {
             sex = EnumGender.FEMALE;
         }
         double age = Double.parseDouble(userData.age.get());
@@ -405,19 +411,18 @@ public class MovisensService extends Service {
 
         // BATTERY_SERVICE Indication
         BluetoothGattService batteryService = BleUtils.findService(MovisensServices.MOVISENS_BATTERY.getUuid(), gattServices);
-        Log.d("battery_uuid ",MovisensServices.MOVISENS_BATTERY.getUuid().toString());
+        Log.d("battery_uuid ", MovisensServices.MOVISENS_BATTERY.getUuid().toString());
 
         if (batteryService != null) {
-            BleUtils.enableCharacteristicIndication(MovisensCharacteristics.BATTERY_LEVEL_BUFFERED.getUuid(),"BATTERY_LEVEL_BUFFERED",
+            BleUtils.enableCharacteristicIndication(MovisensCharacteristics.BATTERY_LEVEL_BUFFERED.getUuid(), "BATTERY_LEVEL_BUFFERED",
                     batteryService.getCharacteristics(), connectionHandler);
         }
-
 
 
         // DeviceInformationService
         BluetoothGattService deviceService = BleUtils.findService(Services.DEVICE_INFORMATION.getUuid(), gattServices);
         if (deviceService != null) {
-            BleUtils.readCharacteristic(Characteristics.FIRMWARE_REVISION_STRING.getUuid(),"FIRMWARE_REVISION_STRING",
+            BleUtils.readCharacteristic(Characteristics.FIRMWARE_REVISION_STRING.getUuid(), "FIRMWARE_REVISION_STRING",
                     deviceService.getCharacteristics(), connectionHandler);
         }
 
@@ -425,30 +430,28 @@ public class MovisensService extends Service {
         BluetoothGattService accService = BleUtils.findService(MovisensServices.PHYSICAL_ACTIVITY.getUuid(), gattServices);
         if (accService != null) {
             BleUtils.enableCharacteristicIndication(
-                    MovisensCharacteristics.MET_BUFFERED.getUuid(),"MET_BUFFERED",
+                    MovisensCharacteristics.MET_BUFFERED.getUuid(), "MET_BUFFERED",
                     accService.getCharacteristics(), connectionHandler);
             BleUtils.enableCharacteristicIndication(
-                    MovisensCharacteristics.STEPS_BUFFERED.getUuid(),"STEP_COUNT_BUFFERED",
+                    MovisensCharacteristics.STEPS_BUFFERED.getUuid(), "STEP_COUNT_BUFFERED",
                     accService.getCharacteristics(), connectionHandler);
             BleUtils.enableCharacteristicIndication(
-                    MovisensCharacteristics.MET_LEVEL_BUFFERED.getUuid(),"MET_LEVEL_BUFFERED",
+                    MovisensCharacteristics.MET_LEVEL_BUFFERED.getUuid(), "MET_LEVEL_BUFFERED",
                     accService.getCharacteristics(), connectionHandler);
         }
 
 
+        BluetoothGattService markerService = BleUtils.findService(MovisensServices.MARKER.getUuid(), gattServices);
+        Log.d("marker_uuid ", markerService.getUuid().toString());
 
-       BluetoothGattService markerService = BleUtils.findService(MovisensServices.MARKER.getUuid(), gattServices);
-        Log.d("marker_uuid ",markerService.getUuid().toString());
 
+        if (markerService != null) {
 
-       if(markerService!=null){
-
-            Log.d("marker",markerService.getCharacteristics().get(0).getUuid().toString());
+            Log.d("marker", markerService.getCharacteristics().get(0).getUuid().toString());
             BleUtils.enableCharacteristicNotification(
-                    MovisensCharacteristics.TAP_MARKER.getUuid(),"TAP_MARKER",
+                    MovisensCharacteristics.TAP_MARKER.getUuid(), "TAP_MARKER",
                     markerService.getCharacteristics(), connectionHandler);
-            }
-
+        }
 
 
         // MOVISENS_SERVICE
@@ -457,7 +460,7 @@ public class MovisensService extends Service {
 
 
             BleUtils.writeCharacteristic(
-                    MovisensCharacteristics.AGE_FLOAT.getUuid(),"AGE_FLOAT",
+                    MovisensCharacteristics.AGE_FLOAT.getUuid(), "AGE_FLOAT",
                     movisensService.getCharacteristics(), connectionHandler, new AgeFloat(age).getBytes());
             BleUtils.writeCharacteristic(
                     MovisensCharacteristics.SENSOR_LOCATION.getUuid(), "SENSOR_LOCATION",
@@ -469,7 +472,7 @@ public class MovisensService extends Service {
         BluetoothGattService movisensSensorControl = BleUtils.findService(MovisensServices.SENSOR_CONTROL.getUuid(), gattServices);
         if (movisensSensorControl != null) {
             BleUtils.writeCharacteristic(
-                    MovisensCharacteristics.CURRENT_TIME.getUuid(),"CURRENT_TIME",
+                    MovisensCharacteristics.CURRENT_TIME.getUuid(), "CURRENT_TIME",
                     movisensSensorControl.getCharacteristics(), connectionHandler, getLocalTime());
 
             byte[] enable = GattByteBuffer.allocate(1).putBoolean(true).array();
@@ -479,24 +482,24 @@ public class MovisensService extends Service {
 
             if (allow_delete_data || autoStartNewMeasurement) {
                 BleUtils.writeCharacteristic(
-                        MovisensCharacteristics.DELETE_DATA.getUuid(),"DELETE_DATA",
+                        MovisensCharacteristics.DELETE_DATA.getUuid(), "DELETE_DATA",
                         movisensSensorControl.getCharacteristics(), connectionHandler, enable);
 
                 BleUtils.enableCharacteristicNotification(
-                        MovisensCharacteristics.DELETE_DATA.getUuid(),"DELETE_DATA",
+                        MovisensCharacteristics.DELETE_DATA.getUuid(), "DELETE_DATA",
                         movisensSensorControl.getCharacteristics(), connectionHandler);
             }
 
             BleUtils.writeCharacteristic(
-                    MovisensCharacteristics.MEASUREMENT_ENABLED.getUuid(),"MEASUREMENT_ENABLED",
+                    MovisensCharacteristics.MEASUREMENT_ENABLED.getUuid(), "MEASUREMENT_ENABLED",
                     movisensSensorControl.getCharacteristics(), connectionHandler, enable);
 
             BleUtils.enableCharacteristicNotification(
-                    MovisensCharacteristics.MEASUREMENT_ENABLED.getUuid(),"MEASUREMENT_ENABLED",
+                    MovisensCharacteristics.MEASUREMENT_ENABLED.getUuid(), "MEASUREMENT_ENABLED",
                     movisensSensorControl.getCharacteristics(), connectionHandler);
 
             BleUtils.writeCharacteristic(
-                    MovisensCharacteristics.SAVE_ENERGY.getUuid(),"SAVE_ENERGY",
+                    MovisensCharacteristics.SAVE_ENERGY.getUuid(), "SAVE_ENERGY",
                     movisensSensorControl.getCharacteristics(), connectionHandler, enable);
         }
     }
@@ -509,6 +512,7 @@ public class MovisensService extends Service {
         GattByteBuffer timeBB = GattByteBuffer.allocate(4);
         return timeBB.putUint32(time / 1000).array();
     }
+
 
 
     // The StateMachine class
@@ -532,7 +536,7 @@ public class MovisensService extends Service {
         enum States implements MovisensService.StateMachine.State {
             WAIT_FOR_MEASUREMENT_ENABLED {
                 public void receiveData(MovisensService.StateMachine sm, final byte[] data, UUID uuid) {
-                    sm.context.log(TAG,"Received data from characteristic Measurement: " + uuid.toString() + ", data: " + BleUtils.bytesToHex(data));
+                    sm.context.log(TAG, "Received data from characteristic Measurement: " + uuid.toString() + ", data: " + BleUtils.bytesToHex(data));
 
                     if (MovisensCharacteristics.MEASUREMENT_ENABLED.equals(uuid)) {
                         MeasurementEnabled measurementEnabled = new MeasurementEnabled(data);
@@ -543,7 +547,7 @@ public class MovisensService extends Service {
             },
             WAIT_FOR_DATA_AVAILABLE {
                 public void receiveData(MovisensService.StateMachine sm, final byte[] data, UUID uuid) {
-                    sm.context.log(TAG,"Received data from characteristic WAITING: " + uuid.toString() + ", data: " + BleUtils.bytesToHex(data));
+                    sm.context.log(TAG, "Received data from characteristic WAITING: " + uuid.toString() + ", data: " + BleUtils.bytesToHex(data));
 
                     DataAvailable dataAvailable = new DataAvailable(data);
                     MeasurementStatus measurementStatus = sm.context.measurementStatus;
@@ -571,67 +575,21 @@ public class MovisensService extends Service {
             },
             RUNNING {
                 public void receiveData(MovisensService.StateMachine sm, final byte[] data, UUID uuid) {
-                    sm.context.log(TAG,"Received data from characteristic: " + uuid.toString() + ", data: " + BleUtils.bytesToHex(data));
-
-
-                  if(MovisensCharacteristics.TAP_MARKER.equals(uuid)){
-
-                        Log.d("marker"," "+MovisensCharacteristics.TAP_MARKER.getUuid());
-
-                      TapMarker marker= new TapMarker(data);
-
-                      Log.d("marker_data ","" +marker.getTapMarker());
-
-
-
+                    sm.context.log(TAG, "Received data from characteristic: " + uuid.toString() + ", data: " + BleUtils.bytesToHex(data));
+                    /// TAPS!!!
+                    if (MovisensCharacteristics.TAP_MARKER.equals(uuid)) {
+                        TapMarker marker = new TapMarker(data);
+                        String markerData = marker.getTapMarker() + "";
+                        Log.d("marker_data ", "" + markerData);
+                        sm.context.broadcastData("tap_marker", markerData);
                     }
-
-
-                     /*
-
-   if(uuid==UUID.fromString("78663ddf-83c3-4665-9d04-003c990acf78")){
-
-                        Log.d("skintemp","skin temp buffer data  from "+uuid);
-
-                  }
-
-
-*/
-                   /* if(MovisensCharacteristics.SKIN_TEMPERATURE.equals(uuid)){
-
-                      //  Log.d("temp_uuid", ""+MovisensCharacteristics.SKIN_TEMPERATURE.equals(MovisensCharacteristics.SKIN_TEMPERATURE.getUuid()));
-
-                        SkinTemperature skinTemperature = new SkinTemperature(data);
-
-                        Log.d("skintemp ", skinTemperature.getTemperature()+" " +skinTemperature.getTemperatureUnit());
-                    }
-*/
-
-
-
-
-
-
-
-
-               /*     if(UUID.fromString("207b171c-d7a5-48ef-8e60-6ccb5f0993f4").equals(uuid)){
-
-                        Log.d("mark_", ""+MovisensCharacteristics.TAP_MARKER.equals(uuid));
-
-                        TapMarker tapMarker= new TapMarker(data);
-
-                        Log.d("mark_", ""+ tapMarker.getTapMarker().toString()+" "+ tapMarker.getTapMarkerUnit() );
-                    }
-*/
-
-
 
                     if (MovisensCharacteristics.BATTERY_LEVEL_BUFFERED.equals(uuid)) {
                         BatteryLevelBuffered battery = new BatteryLevelBuffered(data);
                         sm.context.splitAndSaveLastBatteryLevel(battery);
                     }
 
-                    if(Characteristics.FIRMWARE_REVISION_STRING.equals(uuid)) {
+                    if (Characteristics.FIRMWARE_REVISION_STRING.equals(uuid)) {
                         FirmwareRevisionString firmware = new FirmwareRevisionString(data);
 
                         ContentValues values = new ContentValues();
@@ -647,7 +605,7 @@ public class MovisensService extends Service {
                     if (MovisensCharacteristics.STEPS_BUFFERED.equals(uuid)) {
                         StepsBuffered new_data = new StepsBuffered(data);
 
-                        Log.d("step",new_data.getSteps().toString());
+                        Log.d("step", new_data.getSteps().toString());
                         sm.context.splitAndSaveSteps(new_data);
                     }
 
@@ -662,7 +620,7 @@ public class MovisensService extends Service {
                     }
 
                     if (MovisensCharacteristics.DATA_AVAILABLE.equals(uuid)) {
-                        sm.context.log(TAG,"Data available");
+                        sm.context.log(TAG, "Data available");
                     }
                 }
             }
@@ -670,17 +628,17 @@ public class MovisensService extends Service {
     }
 
 
-
     /**
      * Function to seperate Timestamp from the string and additionally save it into the current
      * sensor data
+     *
      * @param stepsBuffered StepsBuffered class from the sensor
      */
     private void splitAndSaveSteps(StepsBuffered stepsBuffered) {
         String[] splits = stepsBuffered.toString().split("[\\r\\n]+");
 
-        for(int i = 0; i < splits.length; i++) {
-            DateTime timestamp = new DateTime((stepsBuffered.getTime().getTime()/1000 + (long)(1/stepsBuffered.getSamplerate() *i))*1000);
+        for (int i = 0; i < splits.length; i++) {
+            DateTime timestamp = new DateTime((stepsBuffered.getTime().getTime() / 1000 + (long) (1 / stepsBuffered.getSamplerate() * i)) * 1000);
             int steps = stepsBuffered.getSteps()[i];
 
             ContentValues values = new ContentValues();
@@ -689,20 +647,21 @@ public class MovisensService extends Service {
             values.put(COL_UPDATED, TimeFormatUtil.getDateString());
             Uri uri = getContentResolver().insert(MovisensData.TrackingData.TRACKINGDATA_URI, values);
 
-            log("UpdateSensorData","Time: " + TimeFormatUtil.getStringFromDate(timestamp) + " " + "Steps: " + stepsBuffered.getSteps()[i]);
+            log("UpdateSensorData", "Time: " + TimeFormatUtil.getStringFromDate(timestamp) + " " + "Steps: " + stepsBuffered.getSteps()[i]);
         }
     }
 
     /**
      * Function to seperate Timestamp from the string and additionally save it into the current
      * sensor data
+     *
      * @param metLevelBuffered MetLevelBuffered class from sensor
      */
     private void splitAndSaveMetLevel(MetLevelBuffered metLevelBuffered) {
         String[] splits = metLevelBuffered.toString().split("[\\r\\n]+");
 
-        for(int i = 0; i < splits.length; i++) {
-            DateTime timestamp = new DateTime((metLevelBuffered.getTime().getTime()/1000 + (long)(1/metLevelBuffered.getSamplerate() *i))*1000);
+        for (int i = 0; i < splits.length; i++) {
+            DateTime timestamp = new DateTime((metLevelBuffered.getTime().getTime() / 1000 + (long) (1 / metLevelBuffered.getSamplerate() * i)) * 1000);
             Short light = metLevelBuffered.getLight()[i];
             Short vigorous = metLevelBuffered.getVigorous()[i];
             Short moderate = metLevelBuffered.getModerate()[i];
@@ -715,20 +674,21 @@ public class MovisensService extends Service {
             values.put(COL_UPDATED, TimeFormatUtil.getDateString());
             Uri uri = getContentResolver().insert(MovisensData.TrackingData.TRACKINGDATA_URI, values);
 
-            log("UpdateSensorData","Time: " + TimeFormatUtil.getStringFromDate(timestamp) + " Light: " +light + " Vigorous: " + vigorous + " Moderate: " + moderate);
+            log("UpdateSensorData", "Time: " + TimeFormatUtil.getStringFromDate(timestamp) + " Light: " + light + " Vigorous: " + vigorous + " Moderate: " + moderate);
         }
     }
 
     /**
      * Function to seperate Timestamp from the string and additionally save it into the current
      * sensor data
+     *
      * @param metBuffered MetBuffered class from the sensor
      */
     private void splitAndSaveMet(MetBuffered metBuffered) {
         Double[] metValues = metBuffered.getMet();
 
-        for(int i = 0; i < metValues.length; i++) {
-            DateTime timestamp = new DateTime((metBuffered.getTime().getTime()/1000 + (long)(1/metBuffered.getSamplerate() *i))*1000);
+        for (int i = 0; i < metValues.length; i++) {
+            DateTime timestamp = new DateTime((metBuffered.getTime().getTime() / 1000 + (long) (1 / metBuffered.getSamplerate() * i)) * 1000);
             Double met = metBuffered.getMet()[i];
 
             ContentValues values = new ContentValues();
@@ -737,13 +697,14 @@ public class MovisensService extends Service {
             values.put(COL_UPDATED, TimeFormatUtil.getDateString());
             Uri uri = getContentResolver().insert(MovisensData.TrackingData.TRACKINGDATA_URI, values);
 
-            log("UpdateSensorData","Time: " + TimeFormatUtil.getStringFromDate(timestamp) + " " + "Met: " + metBuffered.getMet()[i]);
+            log("UpdateSensorData", "Time: " + TimeFormatUtil.getStringFromDate(timestamp) + " " + "Met: " + metBuffered.getMet()[i]);
         }
     }
 
     /**
      * Function to get last battery level and additionally save it into the current
      * sensor data
+     *
      * @param batteryBuffered BatteryLevelBuffered class from the sensor
      */
     private void splitAndSaveLastBatteryLevel(BatteryLevelBuffered batteryBuffered) {
@@ -754,7 +715,7 @@ public class MovisensService extends Service {
         values.put(COL_UPDATED, TimeFormatUtil.getDateString());
         getContentResolver().insert(MovisensData.SensorData.SENSORDATA_URI, values);
 
-        for (Double value:batteryValues) {
+        for (Double value : batteryValues) {
             log(TAG, "Battery: " + value);
         }
     }
