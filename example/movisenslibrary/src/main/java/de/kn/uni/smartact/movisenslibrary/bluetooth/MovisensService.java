@@ -614,10 +614,12 @@ public class MovisensService extends Service {
 
                     if (MovisensCharacteristics.STEPS_BUFFERED.equals(uuid)) {
                         StepsBuffered stepsBuffered = new StepsBuffered(data);
-                        String stepString = stepsBuffered.getSteps().toString();
-                        Log.d("step", stepString);
-                        sm.context.splitAndSaveSteps(stepsBuffered);
-                        sm.context.broadcastData(sm.context.MOVISENS_STEP_COUNT, stepString);
+                        for (Integer stepCount : stepsBuffered.getSteps()) {
+                            String stepString = stepCount.toString();
+                            Log.d("step", stepString);
+                            sm.context.splitAndSaveSteps(stepsBuffered);
+                            sm.context.broadcastData(sm.context.MOVISENS_STEP_COUNT, stepString);
+                        }
                     }
 
                     if (MovisensCharacteristics.MET_LEVEL_BUFFERED.equals(uuid)) {
