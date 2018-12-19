@@ -4,21 +4,23 @@ import 'package:flutter/services.dart';
 import 'dart:convert';
 
 class MovisensDataPoint {
-  static const String
-      TAP_MARKER = 'tapMarker',
+  static const String TAP_MARKER = 'tapMarker',
       BATTERY_LEVEL = 'batteryLevel',
       STEP_COUNT = 'step_count';
 
   String _batteryLevel, _tapMarker, _stepCount;
 
   MovisensDataPoint(Map<String, dynamic> data) {
-    _batteryLevel = data.containsKey(BATTERY_LEVEL) ? data[BATTERY_LEVEL] : null;
+    _batteryLevel =
+        data.containsKey(BATTERY_LEVEL) ? data[BATTERY_LEVEL] : null;
     _tapMarker = data.containsKey(TAP_MARKER) ? data[TAP_MARKER] : null;
     _stepCount = data.containsKey(STEP_COUNT) ? data[STEP_COUNT] : null;
   }
 
   String get batteryLevel => _batteryLevel;
+
   String get tapMarker => _tapMarker;
+
   String get stepCount => _stepCount;
 
   @override
@@ -34,7 +36,7 @@ MovisensDataPoint parseDataPoint(dynamic dataPoint) {
 }
 
 class MovisensFlutter {
-//  MethodChannel _channel = MethodChannel('movisens_flutter');
+  MethodChannel _methodChannel = MethodChannel('movisens.method_channel');
   EventChannel _eventChannel = EventChannel('movisens.event_channel');
   Stream<MovisensDataPoint> _movisenStream;
 
@@ -43,5 +45,19 @@ class MovisensFlutter {
     return _movisenStream;
   }
 
+  void makeUserData() async {
+    print('Make user data');
 
+    Map<String, dynamic> args = {
+      'user_data': {
+        'weight': '100',
+        'height': '180',
+        'gender': 'male',
+        'age': '40'
+      }
+    };
+
+    dynamic res = await _methodChannel.invokeMethod('userData', args);
+    print("Response from android $res");
+  }
 }

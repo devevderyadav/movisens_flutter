@@ -23,11 +23,14 @@ class _MyAppState extends State<MyApp> {
   /// Set up movisens data stream
   Future<void> initPlatformState() async {
    MovisensFlutter movisens = new MovisensFlutter();
+   movisens.makeUserData();
    movisens.movisensStream.listen(onData);
+
   }
 
   void onData(MovisensDataPoint data) {
     print('FLUTTER: $data');
+
   }
 
   @override

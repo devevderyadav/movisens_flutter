@@ -205,7 +205,7 @@ public class MovisensDataProvider extends ContentProvider {
 
     private void logQuery(SQLiteQueryBuilder builder, String[] projection, String selection, String sortOrder) {
         if (BuildConfig.DEBUG) {
-            Log.v("movisenslibrary", "query: " + builder.buildQuery(projection, selection, null, null, sortOrder, null));
+//            Log.v("movisenslibrary", "query: " + builder.buildQuery(projection, selection, null, null, sortOrder, null));
         }
     }
 
